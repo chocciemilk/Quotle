@@ -115,14 +115,18 @@ export default function App() {
     localStorage.setItem("streak", streak);
   }, [streak]);
 
+  const clueText = quote?.clue ?? quote?.hint ?? "No clue available";
+
   const hintOrder = [
-    `🌍 Nationality: ${quote.nationality}`,
-    `⚧ Gender: ${quote.gender}`,
-    `📅 Year: ${quote.year}`,
-    `📍 Place: ${quote.place}`
+    `🌍 Nationality: ${quote?.nationality ?? "Unknown"}`,
+    `⚧ Gender: ${quote?.gender ?? "Unknown"}`,
+    `📅 Year: ${quote?.year ?? "Unknown"}`,
+    `📍 Place: ${quote?.place ?? "Unknown"}`,
+    `❔ Clue: ${clueText}`
+
   ];
 
-  const hints = hintOrder.slice(0, Math.max(0, attempts - 1));
+  const hints = hintOrder.slice(0, Math.max(0, attempts));
 
   function shareText() {
     let t = `QUOTLE ${todayKey}\n\n`;

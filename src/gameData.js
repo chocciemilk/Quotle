@@ -6,7 +6,8 @@ export const quotes = [
     nationality: "Roman",
     gender: "Male",
     year: "47 BC",
-    place: "Pontus"
+    place: "Pontus",
+    clue: "A nice salad",
   },
 
   {
@@ -16,7 +17,8 @@ export const quotes = [
     nationality: "Indian",
     gender: "Male",
     year: "1900",
-    place: "India"
+    place: "India",
+    clue: "Feeling pretty salty",
   },
 
   {
@@ -26,6 +28,7 @@ export const quotes = [
     nationality: "British",
     gender: "Male",
     year: "1599-1601",
-    place: "England"
+    place: "England",
+    clue: "A famous playwright",
   },
 ];
