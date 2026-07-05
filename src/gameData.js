@@ -5,16 +5,27 @@ export const quotes = [
     answer: "Julius Caesar",
     nationality: "Roman",
     gender: "Male",
-    year: -47,
+    year: "47 BC",
     place: "Pontus"
   },
+
   {
     date: "2026-07-06",
     text: "Be the change you wish to see in the world.",
     answer: "Mahatma Gandhi",
     nationality: "Indian",
     gender: "Male",
-    year: 1900,
+    year: "1900",
     place: "India"
-  }
+  },
+
+  {
+    date: "2026-07-07",
+    text: "To be or not to be, that is the question.",
+    answer: "William Shakespeare",
+    nationality: "British",
+    gender: "Male",
+    year: "1599-1601",
+    place: "England"
+  },
 ];
