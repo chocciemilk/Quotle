@@ -53,6 +53,32 @@
   color: rgba(255, 250, 242, 0.8);
 }
 
+.countdown-banner {
+  width: min(100%, 360px);
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 191, 84, 0.95), rgba(240, 140, 0, 0.95));
+  color: #162034;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  font-weight: 800;
+}
+
+.countdown-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.countdown-value {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .home-card {
   width: min(100%, 560px);
   border: 1px solid rgba(255, 250, 242, 0.16);

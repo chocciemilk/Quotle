@@ -16,6 +16,74 @@ function getDifficultyLabel(difficulty) {
   }[difficulty] || difficulty;
 }
 
+function getNextMidnight() {
+  const next = new Date();
+  next.setHours(24, 0, 0, 0);
+  return next;
+}
+
+function formatTimeLeft(targetTime) {
+  const difference = Math.max(0, targetTime - Date.now());
+  const hours = Math.floor(difference / (1000 * 60 * 60));
+  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function HomeScreen({ onSelectDifficulty }) {
+  const [timeLeft, setTimeLeft] = useState(() => formatTimeLeft(getNextMidnight()));
+
+  useEffect(() => {
+    const targetTime = getNextMidnight();
+    const timer = window.setInterval(() => {
+      const nextTarget = getNextMidnight();
+      if (Date.now() >= nextTarget.getTime()) {
+        setTimeLeft(formatTimeLeft(getNextMidnight()));
+      } else {
+        setTimeLeft(formatTimeLeft(nextTarget));
+      }
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <main className="quotle-page">
+      <section className="home-shell" aria-labelledby="home-title">
+        <header className="page-header">
+          <h1 id="home-title">Quotle</h1>
+          <p className="page-subtitle">Choose a difficulty and test your quote-guessing skills.</p>
+        </header>
+
+        <div className="countdown-banner" role="status" aria-live="polite">
+          <span className="countdown-label">New quotes released</span>
+          <span className="countdown-value">{timeLeft}</span>
+        </div>
+
+        <div className="home-card">
+          <h2>Welcome to Quotle</h2>
+          <p>Pick a mode for today’s quote challenge. Each difficulty keeps its own score and streak.</p>
+          <p>Read the quote and guess the full name of who said it!</p>
+          <p>Good luck!</p>
+
+          <div className="difficulty-grid">
+            <button type="button" className="difficulty-button" onClick={() => onSelectDifficulty("easy")}>
+              Easy
+            </button>
+            <button type="button" className="difficulty-button" onClick={() => onSelectDifficulty("medium")}>
+              Medium
+            </button>
+            <button type="button" className="difficulty-button" onClick={() => onSelectDifficulty("hard")}>
+              Hard
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function GameScreen({ difficulty, onHome }) {
   const quote = useMemo(() => getTodayQuote(difficulty), [difficulty]);
   const todayKey = getTodayKey();
@@ -210,33 +278,10 @@ export default function App() {
   const [difficulty, setDifficulty] = useState("easy");
 
   return view === "home" ? (
-    <main className="quotle-page">
-      <section className="home-shell" aria-labelledby="home-title">
-        <header className="page-header">
-          <h1 id="home-title">Quotle</h1>
-          <p className="page-subtitle">Choose a difficulty and test your quote-guessing skills.</p>
-        </header>
-
-        <div className="home-card">
-          <h2>Welcome to Quotle</h2>
-          <p>Pick a mode for today’s quote challenge. Each difficulty keeps its own score and streak.</p>
-          <p>Read the quote and guess the full name of who said it!</p>
-          <p>Good luck!</p>
-
-          <div className="difficulty-grid">
-            <button type="button" className="difficulty-button" onClick={() => { setDifficulty("easy"); setView("game"); }}>
-              Easy
-            </button>
-            <button type="button" className="difficulty-button" onClick={() => { setDifficulty("medium"); setView("game"); }}>
-              Medium
-            </button>
-            <button type="button" className="difficulty-button" onClick={() => { setDifficulty("hard"); setView("game"); }}>
-              Hard
-            </button>
-          </div>
-        </div>
-      </section>
-    </main>
+    <HomeScreen onSelectDifficulty={(selectedDifficulty) => {
+      setDifficulty(selectedDifficulty);
+      setView("game");
+    }} />
   ) : (
     <GameScreen difficulty={difficulty} onHome={() => setView("home")} />
   );
