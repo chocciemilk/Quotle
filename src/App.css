@@ -12,13 +12,23 @@
   box-sizing: border-box;
 }
 
-.game-shell {
+.game-shell,
+.home-shell {
   width: min(100%, 760px);
   min-height: calc(100svh - clamp(32px, 6vw, 72px));
   display: grid;
-  grid-template-rows: auto auto auto auto auto 1fr auto;
   align-content: start;
   gap: clamp(12px, 1.8vh, 18px);
+}
+
+.game-shell {
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+}
+
+.home-shell {
+  grid-template-rows: auto auto;
+  place-items: center;
+  text-align: center;
 }
 
 .page-header {
@@ -37,6 +47,89 @@
   text-shadow: 0 18px 46px rgba(3, 8, 20, 0.45);
 }
 
+.page-subtitle {
+  margin: 10px 0 0;
+  font-size: 1rem;
+  color: rgba(255, 250, 242, 0.8);
+}
+
+.home-card {
+  width: min(100%, 560px);
+  border: 1px solid rgba(255, 250, 242, 0.16);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  padding: clamp(20px, 4vw, 34px);
+  background: rgba(255, 255, 255, 0.085);
+}
+
+.home-card h2 {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 4vw, 32px);
+}
+
+.home-card p {
+  margin: 0 0 18px;
+  color: rgba(255, 250, 242, 0.86);
+}
+
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.difficulty-button,
+.home-button,
+.guess-form button,
+.share-panel button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.difficulty-button {
+  padding: 16px 10px;
+  color: #fffaf2;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+  transform: translateY(0);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.difficulty-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  filter: brightness(1.05);
+}
+
+.difficulty-button:nth-child(1) {
+  background: linear-gradient(135deg, #2f9e44, #3bc96b);
+}
+
+.difficulty-button:nth-child(2) {
+  background: linear-gradient(135deg, #e67700, #f08c00);
+}
+
+.difficulty-button:nth-child(3) {
+  background: linear-gradient(135deg, #c92a2a, #f03e3e);
+}
+
+.home-button {
+  padding: 0 14px;
+  color: #152118;
+  background: #fffaf2;
+  margin-bottom: 8px;
+}
+
 .stats-bar,
 .quote-card,
 .panel,
@@ -48,7 +141,7 @@
 
 .stats-bar {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   padding: clamp(10px, 2vw, 14px);
   border-radius: 8px;
@@ -92,7 +185,6 @@
 
 .guess-form button,
 .share-panel button {
-  cursor: pointer;
   padding: 0 18px;
   color: #152118;
   background: #f4bf5f;
@@ -212,13 +304,19 @@
     padding: 12px;
   }
 
-  .game-shell {
+  .game-shell,
+  .home-shell {
     min-height: calc(100svh - 24px);
     gap: 10px;
   }
 
   .stats-bar {
     font-size: 0.9rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .difficulty-grid {
+    grid-template-columns: 1fr;
   }
 
   .guess-form {

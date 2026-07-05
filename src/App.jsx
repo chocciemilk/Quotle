@@ -1,139 +1,85 @@
-import { useState, useMemo, useEffect } from "react";
-import { quotes } from "./gameData";
+import { useEffect, useMemo, useState } from "react";
+import { difficultyQuotes } from "./gameData";
+import { evaluateGuess, getTodayKey } from "./gameLogic";
 import "./App.css";
 
-/* ---------------------------
-   FUZZY MATCHING ENGINE
-----------------------------*/
-function levenshtein(a, b) {
-  const dp = Array.from({ length: a.length + 1 }, () =>
-    Array(b.length + 1).fill(0)
-  );
-
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      dp[i][j] =
-        a[i - 1] === b[j - 1]
-          ? dp[i - 1][j - 1]
-          : Math.min(
-              dp[i - 1][j + 1],
-              dp[i][j - 1] + 1,
-              dp[i - 1][j - 1] + 1
-            );
-    }
-  }
-
-  return dp[a.length][b.length];
+function getTodayQuote(difficulty) {
+  const today = getTodayKey();
+  return difficultyQuotes[difficulty].find((quote) => quote.date === today) || difficultyQuotes[difficulty][0] || null;
 }
 
-function isFuzzyMatch(input, target) {
-  const a = input.toLowerCase().trim();
-  const b = target.toLowerCase().trim();
-  const dist = levenshtein(a, b);
-  return dist <= Math.max(2, Math.floor(b.length * 0.2));
-}
-
-function getNameParts(fullName) {
-  const parts = fullName.trim().split(" ");
+function getDifficultyLabel(difficulty) {
   return {
-    first: parts[0] || "",
-    last: parts.length > 1 ? parts[parts.length - 1] : ""
-  };
+    easy: "Easy",
+    medium: "Medium",
+    hard: "Hard"
+  }[difficulty] || difficulty;
 }
 
-function evaluateGuess(guess, answer) {
-  const g = guess.trim().toLowerCase().split(" ");
-  const a = getNameParts(answer);
-
-  const firstMatch = isFuzzyMatch(g[0] || "", a.first.toLowerCase());
-  const lastMatch = isFuzzyMatch(g[g.length - 1] || "", a.last.toLowerCase());
-
-  if (firstMatch && lastMatch) return { status: "correct", label: "🟩 Correct" };
-  if (firstMatch) return { status: "partial", label: "🟨 First name correct" };
-  if (lastMatch) return { status: "partial", label: "🟨 Surname correct" };
-  return { status: "wrong", label: "⬜ Wrong" };
-}
-
-/* ---------------------------
-   DATA
-----------------------------*/
-function getTodayQuote() {
-  const today = new Date().toLocaleDateString("en-CA");
-  return quotes.find(q => q.date === today) || quotes[0];
-}
-
-function getTodayKey() {
-  return new Date().toLocaleDateString("en-CA");
-}
-
-/* ---------------------------
-   APP
-----------------------------*/
-export default function App() {
-  const quote = useMemo(() => getTodayQuote(), []);
+function GameScreen({ difficulty, onHome }) {
+  const quote = useMemo(() => getTodayQuote(difficulty), [difficulty]);
   const todayKey = getTodayKey();
 
   const [guess, setGuess] = useState("");
-
-  const [guesses, setGuesses] = useState(() =>
-    JSON.parse(localStorage.getItem(`guesses-${todayKey}`) || "[]")
-  );
-
-  const [evaluations, setEvaluations] = useState(() =>
-    JSON.parse(localStorage.getItem(`eval-${todayKey}`) || "[]")
-  );
-
-  const [messages, setMessages] = useState(() =>
-    JSON.parse(localStorage.getItem(`msg-${todayKey}`) || "[]")
-  );
-
-  const [streak, setStreak] = useState(() =>
-    Number(localStorage.getItem("streak") || 0)
-  );
-
-  const [gameOver, setGameOver] = useState(
-    localStorage.getItem(`gameover-${todayKey}`) === "true"
-  );
+  const [guesses, setGuesses] = useState(() => {
+    if (typeof window === "undefined") return [];
+    return JSON.parse(localStorage.getItem(`guesses-${difficulty}-${todayKey}`) || "[]");
+  });
+  const [evaluations, setEvaluations] = useState(() => {
+    if (typeof window === "undefined") return [];
+    return JSON.parse(localStorage.getItem(`eval-${difficulty}-${todayKey}`) || "[]");
+  });
+  const [messages, setMessages] = useState(() => {
+    if (typeof window === "undefined") return [];
+    return JSON.parse(localStorage.getItem(`msg-${difficulty}-${todayKey}`) || "[]");
+  });
+  const [score, setScore] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(localStorage.getItem(`score-${difficulty}`) || 0);
+  });
+  const [streak, setStreak] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(localStorage.getItem(`streak-${difficulty}`) || 0);
+  });
+  const [gameOver, setGameOver] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(`gameover-${difficulty}-${todayKey}`) === "true";
+  });
 
   const attempts = guesses.length;
-
-  /* WIN STATE (NEW DERIVED VALUE) */
   const didWin = evaluations.includes("correct");
 
-  /* SAVE */
   useEffect(() => {
-    localStorage.setItem(`guesses-${todayKey}`, JSON.stringify(guesses));
-    localStorage.setItem(`eval-${todayKey}`, JSON.stringify(evaluations));
-    localStorage.setItem(`msg-${todayKey}`, JSON.stringify(messages));
-    localStorage.setItem(`gameover-${todayKey}`, gameOver);
-  }, [guesses, evaluations, messages, gameOver, todayKey]);
+    localStorage.setItem(`guesses-${difficulty}-${todayKey}`, JSON.stringify(guesses));
+    localStorage.setItem(`eval-${difficulty}-${todayKey}`, JSON.stringify(evaluations));
+    localStorage.setItem(`msg-${difficulty}-${todayKey}`, JSON.stringify(messages));
+    localStorage.setItem(`gameover-${difficulty}-${todayKey}`, gameOver);
+  }, [difficulty, evaluations, gameOver, guesses, messages, todayKey]);
 
   useEffect(() => {
-    localStorage.setItem("streak", streak);
-  }, [streak]);
+    localStorage.setItem(`score-${difficulty}`, String(score));
+    localStorage.setItem(`streak-${difficulty}`, String(streak));
+  }, [difficulty, score, streak]);
 
   const clueText = quote?.clue ?? quote?.hint ?? "No clue available";
-
   const hintOrder = [
     `🌍 Nationality: ${quote?.nationality ?? "Unknown"}`,
     `⚧ Gender: ${quote?.gender ?? "Unknown"}`,
     `📅 Year: ${quote?.year ?? "Unknown"}`,
     `📍 Place: ${quote?.place ?? "Unknown"}`,
     `❔ Clue: ${clueText}`
-
   ];
-
   const hints = hintOrder.slice(0, Math.max(0, attempts));
 
   function shareText() {
-    let t = `QUOTLE ${todayKey}\n\n`;
-    evaluations.forEach(e => (t += e === "correct" ? "🟩\n" : "🟨\n"));
-    t += `\nAttempts: ${attempts}/6`;
-    t += `\nStreak: ${streak}`;
-    return t;
+    let text = `QUOTLE ${getDifficultyLabel(difficulty)} ${todayKey}\n\n`;
+    evaluations.forEach((entry) => {
+      text += entry === "correct" ? "🟩\n" : "🟨\n";
+    });
+    text += `\nAttempts: ${attempts}/6`;
+    text += `\nScore: ${score}`;
+    text += `\nStreak: ${streak}`;
+    return text;
   }
 
   function handleSubmit() {
@@ -154,13 +100,15 @@ export default function App() {
 
     if (result.status === "correct") {
       setGameOver(true);
-      setStreak(prev => prev + 1);
+      setScore((prev) => prev + 1);
+      setStreak((prev) => prev + 1);
       setGuess("");
       return;
     }
 
     if (newGuesses.length >= 6) {
       setGameOver(true);
+      setStreak(0);
       setGuess("");
       return;
     }
@@ -168,24 +116,24 @@ export default function App() {
     setGuess("");
   }
 
-  /* ---------------------------
-     UI
-  ----------------------------*/
   return (
     <main className="quotle-page">
       <section className="game-shell" aria-labelledby="page-title">
         <header className="page-header">
+          <button type="button" className="home-button" onClick={onHome}>
+            🏠 Home
+          </button>
           <h1 id="page-title">Quotle</h1>
+          <p className="page-subtitle">{getDifficultyLabel(difficulty)} mode</p>
         </header>
 
-        {/* STATS */}
         <div className="stats-bar">
           <div>🎯 {attempts}/6</div>
+          <div>🏅 {score}</div>
           <div>🔥 {streak}</div>
           <div>{gameOver ? "DONE" : "LIVE"}</div>
         </div>
 
-        {/* WIN / LOSE END SCREEN (NEW) */}
         {gameOver && (
           <div className={`end-screen ${didWin ? "end-screen-win" : "end-screen-lose"}`}>
             {didWin ? (
@@ -204,72 +152,92 @@ export default function App() {
           </div>
         )}
 
-        {/* QUOTE */}
-        <div className="quote-card">
-          “{quote.text}”
-        </div>
+        <div className="quote-card">“{quote.text}”</div>
 
-        {/* INPUT */}
         <div className="guess-form">
           <input
             value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            onChange={(event) => setGuess(event.target.value)}
+            onKeyDown={(event) => event.key === "Enter" && handleSubmit()}
             disabled={gameOver}
             aria-label="Guess the speaker"
           />
 
-          <button
-            onClick={handleSubmit}
-            disabled={gameOver}
-          >
+          <button type="button" onClick={handleSubmit} disabled={gameOver}>
             Submit
           </button>
         </div>
 
-        {/* BOARD */}
         <div className="panel guesses-panel">
           <h3>🧾 Guesses</h3>
 
-          {guesses.map((g, i) => (
+          {guesses.map((entry, index) => (
             <div
-              key={i}
-              className={`guess-row ${evaluations[i] === "correct" ? "guess-row-correct" : ""}`}
+              key={`${entry}-${index}`}
+              className={`guess-row ${evaluations[index] === "correct" ? "guess-row-correct" : ""}`}
             >
-              <span>{g}</span>
-              <span>{messages[i]}</span>
+              <span>{entry}</span>
+              <span>{messages[index]}</span>
             </div>
           ))}
         </div>
 
-        {/* HINTS */}
         <div className="panel hints-panel">
           <h3>💡 Hints</h3>
-          {hints.map((h, i) => (
-            <div key={i} className="hint-row">
-              {h}
+          {hints.map((hint, index) => (
+            <div key={`${hint}-${index}`} className="hint-row">
+              {hint}
             </div>
           ))}
         </div>
 
-        {/* SHARE */}
         {gameOver && (
           <div className="panel share-panel">
             <h3>📤 Share</h3>
-
-            <pre>
-              {shareText()}
-            </pre>
-
-            <button
-              onClick={() => navigator.clipboard.writeText(shareText())}
-            >
+            <pre>{shareText()}</pre>
+            <button type="button" onClick={() => navigator.clipboard.writeText(shareText())}>
               Copy Share
             </button>
           </div>
         )}
-
       </section>
     </main>
+  );
+}
+
+export default function App() {
+  const [view, setView] = useState("home");
+  const [difficulty, setDifficulty] = useState("easy");
+
+  return view === "home" ? (
+    <main className="quotle-page">
+      <section className="home-shell" aria-labelledby="home-title">
+        <header className="page-header">
+          <h1 id="home-title">Quotle</h1>
+          <p className="page-subtitle">Choose a difficulty and test your quote-guessing skills.</p>
+        </header>
+
+        <div className="home-card">
+          <h2>Welcome to Quotle</h2>
+          <p>Pick a mode for today’s quote challenge. Each difficulty keeps its own score and streak.</p>
+          <p>Read the quote and guess the full name of who said it!</p>
+          <p>Good luck!</p>
+
+          <div className="difficulty-grid">
+            <button type="button" className="difficulty-button" onClick={() => { setDifficulty("easy"); setView("game"); }}>
+              Easy
+            </button>
+            <button type="button" className="difficulty-button" onClick={() => { setDifficulty("medium"); setView("game"); }}>
+              Medium
+            </button>
+            <button type="button" className="difficulty-button" onClick={() => { setDifficulty("hard"); setView("game"); }}>
+              Hard
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  ) : (
+    <GameScreen difficulty={difficulty} onHome={() => setView("home")} />
   );
 }
