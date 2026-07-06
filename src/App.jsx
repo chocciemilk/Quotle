@@ -142,7 +142,13 @@ function GameScreen({ difficulty, onHome }) {
   function shareText() {
     let text = `QUOTLE ${getDifficultyLabel(difficulty)} ${todayKey}\n\n`;
     evaluations.forEach((entry) => {
-      text += entry === "correct" ? "🟩\n" : "🟨\n";
+      if (entry === "correct") {
+        text += "🟩\n";
+      } else if (entry === "partial") {
+        text += "🟨\n";
+      } else {
+        text += "⬜\n";
+      }
     });
     text += `\nAttempts: ${attempts}/6`;
     text += `\nScore: ${score}`;
